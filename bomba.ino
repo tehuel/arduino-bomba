@@ -26,6 +26,7 @@ byte bomb2[8] = {
 
 byte estadoMenu=0;
 
+
 void setup() {
   lcd.createChar(10, bomb);
   lcd.createChar(11, bomb2);
@@ -34,6 +35,7 @@ void setup() {
   pinMode(A0, INPUT);
   randomSeed(leerSemillaAleatoria());
 }
+
 
 void loop() {
 
@@ -67,9 +69,12 @@ void loop() {
   }
 }
 
+
+// retorna TRUE cuando no hay ninguna tecla para leer en serial
 bool noApretoTecla() {
   return (not Serial.available());
 }
+
 
 void pantallaBienvenida() {
   lcd.clear();
@@ -80,6 +85,7 @@ void pantallaBienvenida() {
   lcd.setCursor(2, 1);
   lcd.print("Press  Start");
 }
+
 
 void actualizarBombaPantalla() {
   lcd.setCursor(3, 0);
@@ -94,6 +100,7 @@ void actualizarBombaPantalla() {
   delay(500);
 }
 
+
 int leerTeclaApretada() {
   return (Serial.parseInt());
 }
@@ -104,6 +111,7 @@ int leerSemillaAleatoria() {
 }
 
 
+// rellena el array con 4 numeros random, todos distintos
 void generarNumeroSecreto(int numeroSecreto[4]){
 
   numeroSecreto[0]=random(0,9);
@@ -127,6 +135,7 @@ void generarNumeroSecreto(int numeroSecreto[4]){
 
 }
 
+// comprueba que el numero actual sea distinto a los anteriores generados
 bool esIgualAAlguno(int posible, int numeroSecreto[4], int i) {
 
   bool resultado = false;
@@ -148,6 +157,8 @@ void cargarMenuPantalla(){
   lcd.print(" Acerca De Bomb");
 }
 
+
+// lee 4 veces el ingreso de datos, uno por cada digito
 void leerCodigoIngresado(int codigoIngresado[4]){
   int teclasApretadas =0;
   while (teclasApretadas<4){
@@ -160,11 +171,11 @@ void leerCodigoIngresado(int codigoIngresado[4]){
     Serial.print("]=");
     Serial.println(codigoIngresado[teclasApretadas]);
     teclasApretadas++;
-
   }
-
 }
 
+
+// comprueba si el numero ingresado es el numero secreto
 bool compararNumeros(int numeroSecreto[4],int numeroIngresado[4]){
 
   Serial.print(numeroSecreto[0]);
@@ -177,6 +188,8 @@ bool compararNumeros(int numeroSecreto[4],int numeroIngresado[4]){
     && numeroSecreto[3] == numeroIngresado[3] );
 }
 
+
+// comprueba cuantos numeros estan en su posicion correcta
 int numeroEnPosicionCorrecta(int numeroSecreto[4],int numeroIngresado[4]){
 
   int cantidadDeNumeros=0;
@@ -189,6 +202,7 @@ int numeroEnPosicionCorrecta(int numeroSecreto[4],int numeroIngresado[4]){
 }
 
 
+// comprueba cuantos de los numeros ingresados forman parte del numero secreto
 int numeroCorrectos(int numeroSecreto[4],int numeroIngresado[4]){
 
   int cantidadDeNumeros=0;
