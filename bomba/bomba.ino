@@ -1,90 +1,152 @@
-#include <LiquidCrystal.h>
-#include "TimerOne.h"
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+#include <LiquidCrystal.h> // Libreria Para LCD 16x2
+#include <SoftwareSerial.h> // Libreria Para Wifi ESP8826
+#include "TimerOne.h" // Libreria Para Manejar Interrupciones
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // Configuracion LCD
+SoftwareSerial wifi(8, 9); // Configuracion Wifi RX | TX
 
-int tiempoTranscurrido=0;
+int tiempoTranscurrido=0; //Contador de Tiempo De La Partida, Se Utiliza para poder calcular el puntaje del juego
 
-byte heart[8] = {
-  B00000,
-  B01010,
-  B11111,
-  B11111,
-  B11111,
-  B01110,
-  B00100,
-  B00000,
-  
-};
+byte heart[8] = {B00000,B01010,B11111,B11111,B11111,B01110,B00100,B00000}; //Array para dibujar Corazon
 
-byte bomb[8] = {
-  B00100,
-  B00010,
-  B00100,
-  B01110,
-  B11011,
-  B10111,
-  B11011,
-  B01110
-};
+byte bomb[8] =  {B00100,B00010,B00100,B01110,B11011,B10111,B11011,B01110}; //Array para dibujar Bomba1
 
-byte bomb2[8] = {
-  B00010,
-  B00100,
-  B00100,
-  B01110,
-  B11011,
-  B10111,
-  B11011,
-  B01110
-};
-
+byte bomb2[8] = {B00010,B00100,B00100,B01110,B11011,B10111,B11011,B01110}; //Array para dibujar Bomba2
 
 
 void setup() {
+  wifi.begin(1200); // Inicializo el modulo Wifi
+
+  // Cargo los graficos en el lcd
   lcd.createChar(4,heart);
   lcd.createChar(1, bomb);
   lcd.createChar(2, bomb2);
-  Serial.begin(9600);
-  lcd.begin(16, 2);
-  pinMode(A0, INPUT);
-  randomSeed(leerSemillaAleatoria());
+
+  Serial.begin(9600); //Inicializo Comunicacion Serial (0,1) RX | TX
+  
+  lcd.begin(16, 2);   // Configuro el LCD en dos Lineas Con 16 Caracteres
+  
+  pinMode(A0, INPUT); //Configuro la entrada Analogica A0 , esta se utiliza Para Leer un valor aleatorio de la antena y posteriormente generar numero aleatorio
+  randomSeed(leerSemillaAleatoria()); // Configuro Semilla Aleatoria
 }
 
 
 void loop() {
 
-  iniciarPantallaBienvenida();
+  iniciarPantallaBienvenida(); // Pantalla De Bienvenida Con el Dibujo de las Bombas
 
-  //iniciarMenu();
- switch (cargarMenuPantalla()){
-  case 0:
-  iniciarJuego();
-  break;
+  switch (cargarMenuPantallaInicial()){
+    case 0:
+      iniciarJuego();
+    break;
+    case 1:
+      menuConfiguracion();
+    break;
  }
-  // Serial.println(numeroSecreto);
 }
 
-void iniciarPantallaBienvenida(){
-   pantallaBienvenida();
+int cargarMenuPantallaInicial(){
+  String textoMenu[4]={"Iniciar Juego","Configuracion","Puntaje","Acerca De..."};
+  return (cargarMenuPantalla(textoMenu));
+}
 
+void menuConfiguracion(){
+  String textoMenu[2]={"Buscar Redes","IP"};
+  switch (cargarMenuPantalla(textoMenu)){
+     case 0:
+      buscarRedesWifi();
+    break;
+    case 1:
+      mostrarMiIP();
+    break;   
+  }
+}
+String* listarRedesWifi()
+{
+  String command="AT+CWLAP\r\n";
+  const int timeout=10000;
+  boolean debug=false;
+    String response[20] = "";
+    
+    wifi.print(command); // send the read character to the esp8266
+    long int time = millis();
+    int x=0;
+    bool esDato=false;
+    int esPrimero=0;
+    while( (time+timeout) > millis())
+    {
+      while(wifi.available())
+      {
+        char c = wifi.read(); 
+        if (c=='"'){esDato=!esDato;esPrimero++;if (esPrimero==2){x++;/*response+="\"\r\n";*/}}
+        if(esPrimero==4){esPrimero=0;}
+        if (esDato && esPrimero==1 && x<20)
+        {response[x]+=c;}
+        
+      }  
+    }
+    
+    return response;
+}
+
+String sendData(String command, const int timeout, boolean debug)
+{
+    String response = "";
+    
+    wifi.print(command); // send the read character to the esp8266
+    long int time = millis();
+    
+    while( (time+timeout) > millis())
+    {
+      while(wifi.available())
+      {
+        char c = wifi.read(); 
+        
+        response+=c;
+        
+      }  
+    }
+    
+    return response;
+}
+
+void mostrarMiIP(){}
+void buscarRedesWifi(){
+  String lectura =sendData("AT\r\n",1000,false);
+  if (lectura.indexOf("OK")>0){
+    lectura="";
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("Buscando Redes");
+    lcd.setCursor(0,1);
+    lectura="";
+   String lectura2 = listarRedesWifi();
+   Serial.println(lectura2);   
+   int indice=0;
+   int cantidad=0;
+   //Serial.println(lectura2.indexOf("\"",indice));
+    
+   Serial.println("Resultados:");
+   Serial.println("menu[0]:"+menu[0]);
+   Serial.println("menu[1]:"+menu[1]);
+   Serial.println("menu[2]:"+menu[2]);
+   Serial.println("menu[3]:"+menu[3]);
+   delay(6000);
+  }
+} 
+void iniciarPantallaBienvenida(){
+  pantallaBienvenida();
   while (noApretoTecla()){
     actualizarBombaPantalla();
   }
-
   leerTeclaApretada();
 }
 
 void incrementar_tiempo(){
-tiempoTranscurrido++;
-lcd.setCursor(12,0);
-lcd.leftToRight();
-lcd.print(tiempoTranscurrido);
-
+  tiempoTranscurrido++;
 }
 
 void iniciarJuego(){
  Timer1.initialize(1000000);         // initialize timer1, and set a 1/2 second period
- //Timer1.pwm(9, 512);                // setup pwm on pin 9, 50% duty cycle
  Timer1.attachInterrupt(incrementar_tiempo);  // attaches callback() as a timer overflow interrup
   
   int numeroSecreto[4];
@@ -219,28 +281,20 @@ bool esIgualAAlguno(int posible, int numeroSecreto[4], int i) {
 }
 
 
-int cargarMenuPantalla(){
+int cargarMenuPantalla(String* textoMenu){
  bool entro = false;
  int posicionCursor = 0;
  while (not entro){
-    
-    String textoMenu[3]={"Iniciar Juego","Puntaje","Acerca De..."};
     mostrarMenuEnPantalla(textoMenu,posicionCursor);
     while (noApretoTecla()){}
     switch (leerTeclaApretada())
     {
       case 2:
       posicionCursor--;
-      //Serial.print("PosicionCursor=");
-      //Serial.println(posicionCursor);
        mostrarMenuEnPantalla(textoMenu,posicionCursor);
       break;
       case 8:
-  
       posicionCursor++;
-      //Serial.print("PosicionCursor=");
-      //Serial.println(posicionCursor);
-  
       mostrarMenuEnPantalla(textoMenu,posicionCursor);
       break;
       case 5:
