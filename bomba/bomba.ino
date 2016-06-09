@@ -120,8 +120,15 @@ void buscarRedesWifi(){
     lcd.setCursor(0,1);
     listarRedesWifi();
   int opcion= cargarMenuPantalla(redesSSID);
+  String lectura =sendData("AT+CWJAP=\""+redesSSID[opcion]+"\",""\r\n",1000,false);
+  Serial.print(lectura);
+   lectura =sendData("AT+CWJAP=\""+redesSSID[opcion]+"\",""\r\n",1000,false);
+  Serial.print(lectura);
   
-    delay(6000);
+   lectura =sendData("AT+CIFSR\r\n",1000,false);
+  Serial.print(lectura);
+  
+  delay(6000);
   }
 } 
 void iniciarPantallaBienvenida(){
