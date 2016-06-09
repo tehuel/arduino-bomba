@@ -367,7 +367,7 @@ int numeroEnPosicionCorrecta(int numeroSecreto[4],int numeroIngresado[4]){
 
 // comprueba cuantos de los numeros ingresados forman parte del numero secreto
 int numerosCorrectos(int numeroSecreto[4],int numeroIngresado[4]){
-
+ 
   int cantidadDeNumeros=0;
 
   for (int x =0 ; x<4;x++){
