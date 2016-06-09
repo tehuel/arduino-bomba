@@ -11,7 +11,7 @@ byte heart[8] = {B00000,B01010,B11111,B11111,B11111,B01110,B00100,B00000}; //Arr
 byte bomb[8] =  {B00100,B00010,B00100,B01110,B11011,B10111,B11011,B01110}; //Array para dibujar Bomba1
 
 byte bomb2[8] = {B00010,B00100,B00100,B01110,B11011,B10111,B11011,B01110}; //Array para dibujar Bomba2
-
+String redesSSID[20]="";
 
 void setup() {
   wifi.begin(1200); // Inicializo el modulo Wifi
@@ -60,13 +60,14 @@ void menuConfiguracion(){
     break;   
   }
 }
-String* listarRedesWifi()
+void listarRedesWifi()
 {
+  for (int s=0;s<20;s++){
+  redesSSID[s]="";
+  }
   String command="AT+CWLAP\r\n";
   const int timeout=10000;
   boolean debug=false;
-    String response[20] = "";
-    
     wifi.print(command); // send the read character to the esp8266
     long int time = millis();
     int x=0;
@@ -77,21 +78,14 @@ String* listarRedesWifi()
       while(wifi.available())
       {
         char c = wifi.read(); 
-        if (c=='"'){esDato=!esDato;esPrimero++;if (esPrimero==2){Serial.print(x);x++;/*response+="\"\r\n";*/}}
+        Serial.print(c);
+        if (c=='"'){esDato=!esDato;esPrimero++;if (esPrimero==2){redesSSID[x].replace("\"","");x++;/*response+="\"\r\n";*/}}
         if(esPrimero==4){esPrimero=0;}
         if (esDato && esPrimero==1 && x<20)
-        {response[x]+=c;}
+        {redesSSID[x]+=c;}
         
       }  
     }
-    
-   Serial.println("Resultados:");
-   Serial.println("menu[0]:"+response[0]);
-   Serial.println("menu[1]:"+response[1]);
-   Serial.println("menu[2]:"+response[2]);
-   Serial.println("menu[3]:"+response[3]);
-   
-    return response;
 }
 
 String sendData(String command, const int timeout, boolean debug)
@@ -124,11 +118,10 @@ void buscarRedesWifi(){
     lcd.setCursor(0,0);
     lcd.print("Buscando Redes");
     lcd.setCursor(0,1);
-    lectura="";
-   String* lectura2 = listarRedesWifi();
-   //Serial.println(lectura2.indexOf("\"",indice));
-    
-   delay(6000);
+    listarRedesWifi();
+  int opcion= cargarMenuPantalla(redesSSID);
+  
+    delay(6000);
   }
 } 
 void iniciarPantallaBienvenida(){
@@ -377,3 +370,4 @@ int numerosCorrectos(int numeroSecreto[4],int numeroIngresado[4]){
   }
   return (cantidadDeNumeros);
 }
+
