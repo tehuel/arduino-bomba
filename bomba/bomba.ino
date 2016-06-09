@@ -77,7 +77,7 @@ String* listarRedesWifi()
       while(wifi.available())
       {
         char c = wifi.read(); 
-        if (c=='"'){esDato=!esDato;esPrimero++;if (esPrimero==2){x++;/*response+="\"\r\n";*/}}
+        if (c=='"'){esDato=!esDato;esPrimero++;if (esPrimero==2){Serial.print(x);x++;/*response+="\"\r\n";*/}}
         if(esPrimero==4){esPrimero=0;}
         if (esDato && esPrimero==1 && x<20)
         {response[x]+=c;}
@@ -85,6 +85,12 @@ String* listarRedesWifi()
       }  
     }
     
+   Serial.println("Resultados:");
+   Serial.println("menu[0]:"+response[0]);
+   Serial.println("menu[1]:"+response[1]);
+   Serial.println("menu[2]:"+response[2]);
+   Serial.println("menu[3]:"+response[3]);
+   
     return response;
 }
 
@@ -119,17 +125,9 @@ void buscarRedesWifi(){
     lcd.print("Buscando Redes");
     lcd.setCursor(0,1);
     lectura="";
-   String lectura2 = listarRedesWifi();
-   Serial.println(lectura2);   
-   int indice=0;
-   int cantidad=0;
+   String* lectura2 = listarRedesWifi();
    //Serial.println(lectura2.indexOf("\"",indice));
     
-   Serial.println("Resultados:");
-   Serial.println("menu[0]:"+menu[0]);
-   Serial.println("menu[1]:"+menu[1]);
-   Serial.println("menu[2]:"+menu[2]);
-   Serial.println("menu[3]:"+menu[3]);
    delay(6000);
   }
 } 
